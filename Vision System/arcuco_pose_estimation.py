@@ -73,11 +73,11 @@ class Aruco():
     def __init__(self, mtx, dst, aruco_dict_type, length_marker = 0.02):
         self.mtx = mtx
         self.dst = dst
-        self.arucoDict = cv2.aruco.Dictionary_get(aruco_dict_type)
-        self.arucoParams = cv2.aruco.DetectorParameters_create()
+        self.arucoDict = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
+        self.arucoParams = cv2.aruco.DetectorParameters()
         self.length_marker = length_marker
-        self.X_42 = 1500  #X position of tag with ID 42, our reference tag.
-        self.Y_42 = -1250 #Y position of tag with ID 42, our reference tag.
+        self.X_42 = 0  #X position of tag with ID 42, our reference tag.
+        self.Y_42 = 0 #Y position of tag with ID 42, our reference tag.
         self.RA_ID = 4    # Id of robot A
         self.RB_ID = 12   # Id of robot B
         
@@ -89,9 +89,9 @@ class Aruco():
         
         self.frame = frame
     
-        self.corners, self.marker_ids, rejected_img_points = cv2.aruco.detectMarkers(self.frame, self.arucoDict, parameters=self.arucoParams,
-            cameraMatrix=self.mtx,
-            distCoeff=self.dst)
+        self.corners, self.marker_ids, rejected_img_points = cv2.aruco.detectMarkers(self.frame, 
+                                                                                     self.arucoDict, 
+                                                                                     parameters=self.arucoParams)
         
         # Draw a square around the markers
         cv2.aruco.drawDetectedMarkers(self.frame, self.corners, self.marker_ids)
@@ -159,7 +159,7 @@ class Aruco():
                 
                 self.position_list.append(self.tvecs[0][0])
     
-                if draw == True: cv2.aruco.drawAxis(self.frame, self.mtx, self.dst, self.rvecs[0][0], self.tvecs[0][0], self.length_marker)
+                if draw == True: cv2.drawFrameAxes(self.frame, self.mtx, self.dst, self.rvecs[0][0], self.tvecs[0][0], self.length_marker)
                 
                 # Store the translation (i.e. position) information
                 transform_translation_x = self.tvecs[0][0][0]
