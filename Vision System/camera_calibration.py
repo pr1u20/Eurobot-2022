@@ -14,8 +14,6 @@ Welcome to the Camera Calibration Program!
 This program:
   - Performs camera calibration using a chessboard.
 '''
- 
-from __future__ import print_function # Python 2/3 compatibility 
 import cv2 # Import the OpenCV library to enable computer vision
 import numpy as np # Import the NumPy scientific computing library
 import glob # Used to get retrieve files that have a specified pattern
