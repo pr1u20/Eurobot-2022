@@ -10,21 +10,10 @@ import cv2
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import math
+import pickle
 
+import Vision_System.parameters as param
 
-
-# Side length of the ArUco marker in meters 
-aruco_marker_side_length = 0.052
-aruco_ID42_side_lenght = 0.075
-
-# Calibration parameters yaml file
-camera_calibration_parameters_filename = 'calibration_chessboard.yaml'
- 
-# Load the camera parameters from the saved file
-#cv2_file = cv2.FileStorage(camera_calibration_parameters_filename, cv2.FILE_STORAGE_READ) 
-#mtx = cv2_file.getNode('K').mat()
-#dst = cv2_file.getNode('D').mat()
-#cv2_file.release()
 
 width = 1500
 height = 900
@@ -40,6 +29,14 @@ dst = np.array([1.0557813457472758e-01, 1.0526580754799850e+00,
            -6.2540648080086747e+00])
 
 dst = np.array([0.001, 0.001, 0.001, 0.001, 0.001])
+
+# Calibration parameters yaml file
+camera_calibration_parameters_filename = 'calibration_chessboard.yaml'
+ 
+# Load the camera parameters from the saved file
+f = open(param.CALIBRATION_FILE_PATH, 'rb')
+(mtx, dst, _, _) = pickle.load(f)
+f.close()
 
 
 def euler_from_quaternion(x, y, z, w):
@@ -148,7 +145,7 @@ class Aruco():
                 
                 
                 if marker_id == 42:
-                    lenght = aruco_ID42_side_lenght
+                    lenght = param.aruco_ID42_side_lenght
                 else: lenght = self.length_marker
                 # Get the rotation and translation vectors
                 self.rvecs, self.tvecs, self.obj_points = cv2.aruco.estimatePoseSingleMarkers(
@@ -328,7 +325,7 @@ class Aruco():
         
 def main(show = False):
     
-    aruco = Aruco(mtx, dst, aruco_dict_type = cv2.aruco.DICT_4X4_100, length_marker = aruco_marker_side_length)
+    aruco = Aruco(mtx, dst, aruco_dict_type = cv2.aruco.DICT_4X4_100, length_marker = param.aruco_marker_side_length)
   
     # define a video capture object
     vid = cv2.VideoCapture(0)
