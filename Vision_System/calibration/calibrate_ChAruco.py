@@ -26,7 +26,7 @@ ids_all = []
 image_size = None 
 
 # This requires a video taken with the camera you want to calibrate
-file_path = os.path.join("Vision_System", "calibration", "Calibration_Video.mp4")
+file_path = param.CALIBRATION_VIDEO_PATH
 
 if os.path.exists(file_path):
     # File exists, do something

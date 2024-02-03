@@ -12,6 +12,7 @@ from scipy.spatial.transform import Rotation as R
 import math
 import pickle
 import os
+import matplotlib.pyplot as plt
 
 import Vision_System.parameters as param
 
@@ -78,6 +79,7 @@ class Aruco():
         self.Y_42 = 0 #Y position of tag with ID 42, our reference tag.
         self.RA_ID = 4    # Id of robot A
         self.RB_ID = 12   # Id of robot B
+        self.positions = []
         
     def detection(self, frame):
         
@@ -310,6 +312,10 @@ class Aruco():
             poses = self.respective_poses()
             
             for i, pose in enumerate(poses):
+
+                if self.marker_ids[i] == 6:
+                    self.positions.append(pose[:2])
+
                 print(f"X: {round(pose[0])} mm --- Y: {round(pose[1])} mm --- Angle: {round(pose[2], 2)}° --- ID: {self.marker_ids[i]}")
                 if self.marker_ids[i] == self.RA_ID:
                     AB_pose[:3] = np.round(pose[:3])
@@ -320,15 +326,22 @@ class Aruco():
             poses = None
             
         return image, AB_pose
-
-
     
+    def plot(self):
+
+        self.positions = np.array(self.positions)
+
+        plt.plot(self.positions[:, 0], label = "x position")
+        plt.plot(self.positions[:, 1], label = "y position")
+        plt.legend()
+        plt.show()
+
         
 def main(show = False):
     
     aruco = Aruco(mtx, dst, aruco_dict_type = cv2.aruco.DICT_4X4_100, length_marker = param.aruco_marker_side_length)
     
-    file_path = os.path.join("Vision_System", "video.mp4")
+    file_path = param.VIDEO_PATH
 
     if os.path.exists(file_path):
         # File exists, do something
@@ -372,6 +385,7 @@ def main(show = False):
     vid.release()
     # Destroy all the windows
     cv2.destroyAllWindows()
+    aruco.plot()
     
     return None
 
