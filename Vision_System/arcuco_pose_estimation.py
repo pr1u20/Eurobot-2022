@@ -13,6 +13,7 @@ import math
 import pickle
 import os
 import matplotlib.pyplot as plt
+import time
 
 import Vision_System.parameters as param
 
@@ -380,6 +381,8 @@ def main(show = False):
         # desired button of your choice
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+        time.sleep(0.03)
           
     # After the loop release the cap object
     vid.release()
