@@ -11,6 +11,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 import math
 import pickle
+import os
 
 import Vision_System.parameters as param
 
@@ -326,18 +327,32 @@ class Aruco():
 def main(show = False):
     
     aruco = Aruco(mtx, dst, aruco_dict_type = cv2.aruco.DICT_4X4_100, length_marker = param.aruco_marker_side_length)
-  
-    # define a video capture object
-    vid = cv2.VideoCapture(0)
+    
+    file_path = os.path.join("Vision_System", "video.mp4")
+
+    if os.path.exists(file_path):
+        # File exists, do something
+        print(f"The file {file_path} exists.")
+        vid = cv2.VideoCapture(file_path)
+
+    else:
+        # File doesn't exist, do something else
+        print(f"The file {file_path} does not exist. Start video with laptop camera.")
+        vid = cv2.VideoCapture(0)
     
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1600)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1200)
       
-    while(True):
+    while vid.isOpened():
           
         # Capture the video frame
         # by frame
         ret, frame = vid.read()
+
+        # if frame is read correctly ret is True
+        if not ret:
+            print("Can't receive frame or video finished. Exiting ...")
+            break
         
         #process image
         frame, _ = aruco.live_processing(frame)

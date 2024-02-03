@@ -3,6 +3,7 @@
 # of markers.
 
 import numpy
+import os
 import cv2
 from cv2 import aruco
 import pickle
@@ -25,10 +26,18 @@ ids_all = []
 image_size = None 
 
 # This requires a video taken with the camera you want to calibrate
-#cap = cv2.VideoCapture(args["video"])
+file_path = os.path.join("Vision_System", "calibration", "Calibration_Video.mp4")
 
-# define a video capture object
-vid = cv2.VideoCapture(0)
+if os.path.exists(file_path):
+    # File exists, do something
+    print(f"The file {file_path} exists.")
+    vid = cv2.VideoCapture(file_path)
+
+else:
+    # File doesn't exist, do something else
+    print(f"The file {file_path} does not exist. Start video with laptop camera.")
+    vid = cv2.VideoCapture(0)
+
     
 vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1600)
 vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1200)
@@ -40,6 +49,12 @@ validCaptures = 0
 while vid.isOpened():
     # Get frame
     ret, img = vid.read()
+
+    # if frame is read correctly ret is True
+    if not ret:
+        print("Can't receive frame or video finished. Exiting ...")
+        break
+
     # Grayscale the image
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
@@ -119,7 +134,7 @@ calibration, cameraMatrix, distCoeffs, rvecs, tvecs = aruco.calibrateCameraCharu
 print("Camera intrinsic parameters matrix:\n{}".format(cameraMatrix))
 print("\nCamera distortion coefficients:\n{}".format(distCoeffs))
 		
-# Save the calibrationq
+# Save the calibration
 f = open(param.CALIBRATION_FILE_PATH, 'wb')
 pickle.dump((cameraMatrix, distCoeffs, rvecs, tvecs), f)
 f.close()
