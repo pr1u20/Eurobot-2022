@@ -1,2 +1,4 @@
-echo "*.csv"
-echo "*.mp4"
+__pycache__/
+.mp4
+.csv
+.avi
