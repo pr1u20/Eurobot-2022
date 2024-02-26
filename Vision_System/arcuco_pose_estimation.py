@@ -14,6 +14,7 @@ import pickle
 import os
 import matplotlib.pyplot as plt
 import time
+import pandas as pd
 
 import Vision_System.parameters as param
 
@@ -64,6 +65,36 @@ def euler_from_quaternion(x, y, z, w):
   
   return roll_x, pitch_y, yaw_z # in radians
 
+def get_id42_coordinates():
+    # Split the video path by underscores
+    path_parts = param.VIDEO_PATH.split('\\')
+
+    name = path_parts[-1]
+
+    path_parts = name.split('_')
+
+    # Extract the "left" and "bottom" strings
+    left_or_right_string = path_parts[1]
+    bottom_or_top_string = path_parts[2]
+
+    print(left_or_right_string)
+
+    if left_or_right_string == "left":
+        x = 0
+
+    elif left_or_right_string == "right":
+        x = 2000
+
+    if bottom_or_top_string == "bottom":
+
+        y = 0
+    
+    elif bottom_or_top_string == "top":
+
+        y = 3000
+
+    return x, y
+
 
 class Aruco():
     """
@@ -75,12 +106,22 @@ class Aruco():
         self.dst = dst
         self.arucoDict = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
         self.arucoParams = cv2.aruco.DetectorParameters()
+        # Set parameters as needed
+        #self.arucoParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_CONTOUR
+        #self.arucoParams.cornerRefinementMinAccuracy = 2
+        self.arucoParams.adaptiveThreshWinSizeMin = 3
+        self.arucoParams.adaptiveThreshWinSizeMax = 40
+        self.arucoParams.adaptiveThreshWinSizeStep = 2
+        self.arucoParams.adaptiveThreshConstant = 20
         self.length_marker = length_marker
-        self.X_42 = 0  #X position of tag with ID 42, our reference tag.
-        self.Y_42 = 0 #Y position of tag with ID 42, our reference tag.
+        x, y = get_id42_coordinates()
+        self.X_42 = x  #X position of tag with ID 42, our reference tag.
+        self.Y_42 = y #Y position of tag with ID 42, our reference tag.
         self.RA_ID = 4    # Id of robot A
         self.RB_ID = 12   # Id of robot B
-        self.positions = []
+        self.poses = []
+        fps = 30 # 
+        self.dt = 1 / fps
         
     def detection(self, frame):
         
@@ -308,6 +349,8 @@ class Aruco():
         
         image = self.pose_estimation(image, draw = True)
         AB_pose = np.zeros(6)  # Array to store pose of robot a and b
+
+        pose_to_append = [np.nan, np.nan, np.nan] #in case of not detetected
         
         if not isinstance(self.marker_ids, type(None)) and 42 in self.marker_ids and len(self.marker_ids) > 1:
             poses = self.respective_poses()
@@ -315,7 +358,7 @@ class Aruco():
             for i, pose in enumerate(poses):
 
                 if self.marker_ids[i] == 6:
-                    self.positions.append(pose[:2])
+                    pose_to_append = pose
 
                 print(f"X: {round(pose[0])} mm --- Y: {round(pose[1])} mm --- Angle: {round(pose[2], 2)}° --- ID: {self.marker_ids[i]}")
                 if self.marker_ids[i] == self.RA_ID:
@@ -325,18 +368,46 @@ class Aruco():
         else:
             print("No detected markers")
             poses = None
+
+        self.poses.append(pose_to_append)
             
         return image, AB_pose
     
     def plot(self):
 
-        self.positions = np.array(self.positions)
+        t = np.linspace(0, len(self.poses)*self.dt, len(self.poses))
+        self.poses = np.array(self.poses)
 
-        plt.plot(self.positions[:, 0], label = "x position")
-        plt.plot(self.positions[:, 1], label = "y position")
-        plt.legend()
+        df = pd.DataFrame()
+
+        df['t (s)'] = t
+        df['x (mm)'] = self.poses[:, 0]
+        df['y (mm)'] = self.poses[:, 1]
+        df['angle (°)'] = self.poses[:, 2]
+
+        df.to_csv(param.PATH_TO_SAVED_DATA)
+
+        plt.subplot(3, 2, 1)
+        plt.plot(t, self.poses[:, 0])
+        plt.title("x position")
+        plt.xlabel("t (s)")
+        plt.ylabel("position (m)")
+
+        plt.subplot(3, 2, 2)
+        plt.plot(t, self.poses[:, 1])
+        plt.title("y position")
+        plt.xlabel("t (s)")
+        plt.ylabel("position (m)")
+
+
+        plt.subplot(3, 2, 3)
+        plt.plot(t, self.poses[:, 2])
+        plt.title("z rotation (ψ)")
+        plt.xlabel("t (s)")
+        plt.ylabel("angle (°)")
+
+        plt.tight_layout()
         plt.show()
-
         
 def main(show = False):
     
@@ -356,6 +427,18 @@ def main(show = False):
     
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1600)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1200)
+
+    frame_width = 1600
+    frame_height = 920
+
+    size = (frame_width, frame_height) 
+   
+    # Below VideoWriter object will create 
+    # a frame of above defined The output  
+    # is stored in 'filename.avi' file. 
+    result = cv2.VideoWriter(param.SAVE_PROCESSED_VIDEO,  
+                            cv2.VideoWriter_fourcc(*'MP4V'), 
+                            30, size) 
       
     while vid.isOpened():
           
@@ -374,6 +457,8 @@ def main(show = False):
         # Display the resulting frame
         
         if show:
+            frame = cv2.resize(frame, (1600, 920)) 
+            result.write(frame)
             cv2.imshow('frame', frame)
               
         # the 'q' button is set as the
@@ -382,10 +467,11 @@ def main(show = False):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        time.sleep(0.03)
+        #time.sleep(0.01)
           
     # After the loop release the cap object
     vid.release()
+    result.release()
     # Destroy all the windows
     cv2.destroyAllWindows()
     aruco.plot()

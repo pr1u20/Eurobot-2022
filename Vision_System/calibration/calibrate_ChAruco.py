@@ -45,6 +45,18 @@ vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1200)
 # The more valid captures, the better the calibration
 validCaptures = 0
 
+frame_width = 1600
+frame_height = 920
+
+size = (frame_width, frame_height) 
+
+# Below VideoWriter object will create 
+# a frame of above defined The output  
+# is stored in 'filename.avi' file. 
+result = cv2.VideoWriter(param.SAVE_PROCESSED_CALIBRATION_VIDEO,  
+                        cv2.VideoWriter_fourcc(*'MP4V'), 
+                        30, size) 
+
 # Loop through frames
 while vid.isOpened():
     # Get frame
@@ -74,7 +86,9 @@ while vid.isOpened():
 
         # If a Charuco board was found, collect image/corner points
         # Requires at least 20 squares for a valid calibration image
-        if response > 20:
+        number_markers = int((param.CHARUCO_SQUARES_HORIZONTALLY*param.CHARUCO_SQUARES_VERTICALLY) / 2) - 1  # Number of Aruco markers in gridboard
+
+        if response == number_markers:
             # Add these corners and ids to our calibration arrays
             corners_all.append(charuco_corners)
             ids_all.append(charuco_ids)
@@ -93,16 +107,19 @@ while vid.isOpened():
             img = cv2.resize(img, (int(img.shape[1]/proportion), int(img.shape[0]/proportion)))
 
             validCaptures += 1
-            if validCaptures == 100:
+            if validCaptures == 1000:
                 break
 
     # Pause to display each image, waiting for key press
+    #img = cv2.resize(img, (1600, 920)) 
+    result.write(img)
     cv2.imshow('Charuco board', img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
           
 # After the loop release the cap object
 vid.release()
+result.release()
 # Destroy any open CV windows
 cv2.destroyAllWindows()
 
