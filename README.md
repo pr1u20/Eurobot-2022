@@ -8,7 +8,9 @@ Eurobot 2022 is a student robotics contest, where robots have to compete autonom
 
 ![map copy](https://user-images.githubusercontent.com/73555876/163551793-5a57cdea-362d-4e41-af64-7638e1adfb31.png)
 ## Background
-Our team, Lèa, competed in the UK Finals, and finished 4th. We lost unfairly in the knockout round of the quarterfinals. It says clearly in the rules that "the reveal of a team’s red square invalidate all the team’s excavation squares", but the judges seemed to have forgotten the rules. Our team uses two different robots and a central tracking device.
+Our team, Lèa, competed in the UK Finals, and finished 4th. We lost unfairly in the knockout round of the quarterfinals against the winning UK team. It says clearly in the rules that "the reveal of a team’s red square invalidate all the team’s excavation squares", but the judges seemed to have forgotten the rules. Upon revision and compliants, we were invited to the world finals in France.
+
+Our team used two different robots and a central tracking device.
 
 This repository consists of three parts:
 - Vision System
